@@ -16,16 +16,13 @@ class FIFOCache(BaseCaching):
         super().__init__()
 
     def put(self, key, item):
-        """
-        Put values method
-        """
-        if not key and not item:
-            return
-        self.cache_data[key] = item
-        if BaseCaching.MAX_ITEMS < len(self.cache_data):
-            first_item = sorted(self.cache_data.keys())[0]
-            del self.cache_data[first_item]
-            print(f"DISCARD {first_item}")
+        """ Add an item in the cache """
+        if key and item:
+            self.cache_data[key] = item
+        if len(self.cache_data) > BaseCaching.MAX_ITEMS:
+            discarded_key = sorted(self.cache_data)[0]
+            self.cache_data.pop(discarded_key)
+            print('DISCARD: {}'.format(discarded_key))
 
     def get(self, key):
         """
