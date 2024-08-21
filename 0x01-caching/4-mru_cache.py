@@ -1,50 +1,40 @@
-#!/usr/bin/env python3
-"""100 LFU Caching
-"""
+#!/usr/bin/python3
+""" Python caching systems """
 from base_caching import BaseCaching
+from collections import OrderedDict
 
 
-class LFUCache(BaseCaching):
-    """Least-frequently used (LFU) caching system"""
-    frecuency_dict = {}
-
+class MRUCache(BaseCaching):
+    """ MRU caching system
+    """
     def __init__(self):
-        """Class constructor"""
+        """ Initialize class instance. """
         super().__init__()
+        self.cache_data = OrderedDict()
+        self.mru = ""
 
     def put(self, key, item):
-        """assign to the dictionary self.cache_data
-        the item value for the key key and delete a value if necesary"""
-        if key is None or item is None:
-            return
-
-        frecuency = self.frecuency_dict.get(key, 0)
-        if key in self.cache_data:
-            del self.frecuency_dict[key]
-            del self.cache_data[key]
-        self.frecuency_dict[key] = frecuency + 1
-        self.cache_data[key] = item
-
-        if len(self.cache_data) <= BaseCaching.MAX_ITEMS:
-            return
-
-        for k in sorted(self.frecuency_dict, key=self.frecuency_dict.get):
-            if k != key:
-                discard = k
-                del self.cache_data[k]
-                print(f"DISCARD: {discard}")
-                del self.frecuency_dict[k]
-                break
+        """ Add an item in the cache
+        """
+        if key and item:
+            if len(self.cache_data) >= BaseCaching.MAX_ITEMS:
+                if key in self.cache_data:
+                    self.cache_data.update({key: item})
+                    self.mru = key
+                else:
+                    # discard the most recently used item
+                    discarded = self.mru
+                    del self.cache_data[discarded]
+                    print("DISCARD: {}".format(discarded))
+                    self.cache_data[key] = item
+                    self.mru = key
+            else:
+                self.cache_data[key] = item
+                self.mru = key
 
     def get(self, key):
-        """ return the value in self.cache_data linked to key"""
-        item = self.cache_data.get(key)
-        if item:
-            del self.cache_data[key]
-            self.cache_data[key] = item
-
-            frecuency = self.frecuency_dict.get(key)
-            del self.frecuency_dict[key]
-            self.frecuency_dict[key] = frecuency + 1
-
-        return item
+        """ Get an item by key
+        """
+        if key in self.cache_data:
+            self.mru = key
+            return self.cache_data[key]
